@@ -3,7 +3,7 @@
   <a href="https://portfolio-alpha-five-56.vercel.app/" target="_blank">Jaivanth's Portfolio</a>
 </h2>
 <div align="center">
-  <img alt="Demo" src="./Images/readme-img1.png" />
+  <img alt="Demo" src="./Images/image.png" />
 </div>
 
 <br/>
@@ -27,7 +27,7 @@
 
 ## TL;DR
 
-You can fork this repo to modify and make changes of your own. Please give me proper credit by linking back to [Soumyajit4419](https://github.com/Jaivanth9/Portfolio). Thanks!
+You can fork this repo to modify and make changes of your own. Please give me proper credit by linking back to [Jaivanth9](https://github.com/Jaivanth9/Portfolio). Thanks!
 
 ## Built With
 
