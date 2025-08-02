@@ -61,7 +61,7 @@ function Contact() {
     setSubmitting(true);
   
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE}/api/contact`, {
+      const response = await fetch("https://portfolio-1-i44r.onrender.com/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
