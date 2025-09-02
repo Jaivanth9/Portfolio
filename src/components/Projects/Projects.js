@@ -23,6 +23,16 @@ function Projects() {
         <Row style={{ justifyContent: "center", paddingBottom: "10px" }}>
           <Col md={4} className="project-card">
             <ProjectCard
+              imgPath={image}
+              isBlog={false}
+              title="NotesApp"
+              description="A secure, modern, and responsive Notes Taking App built with React + Tailwind (frontend) and Node.js + Express + MongoDB (backend). It supports User Authentication with OTP verification, JWT sessions, CRUD Notes (Create, Read, Update, Delete), and persistent storage."
+              ghLink="https://github.com/Jaivanth9/NotesApp"
+               demoLink="https://notesappzz.vercel.app/"
+            />
+          </Col>
+          <Col md={4} className="project-card">
+            <ProjectCard
               imgPath={chatify}
               isBlog={false}
               title="Recipe-Hub"
@@ -65,7 +75,7 @@ function Projects() {
             />
           </Col>
 
-          <Col md={4} className="project-card">
+          {/* <Col md={4} className="project-card">
             <ProjectCard
               imgPath={suicide}
               isBlog={false}
@@ -74,7 +84,7 @@ function Projects() {
               ghLink="https://github.com/Jaivanth9/Travel-App"
               // demoLink="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley" <--------Please include a demo link here
             />
-          </Col>
+          </Col> */}
 
           <Col md={4} className="project-card">
             <ProjectCard
