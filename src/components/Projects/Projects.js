@@ -8,6 +8,7 @@ import editor from "../../Assets/Projects/crm-platform1.png";
 import chatify from "../../Assets/Projects/Recipe-hub.png";
 import suicide from "../../Assets/Projects/suicide.png";
 import bitsOfCode from "../../Assets/Projects/hardware-store.png";
+import NotesAPP from "../../Assets/Projects/image.png"
 
 function Projects() {
   return (
@@ -23,7 +24,7 @@ function Projects() {
         <Row style={{ justifyContent: "center", paddingBottom: "10px" }}>
           <Col md={4} className="project-card">
             <ProjectCard
-              imgPath={image}
+              imgPath={NotesAPP}
               isBlog={false}
               title="NotesApp"
               description="A secure, modern, and responsive Notes Taking App built with React + Tailwind (frontend) and Node.js + Express + MongoDB (backend). It supports User Authentication with OTP verification, JWT sessions, CRUD Notes (Create, Read, Update, Delete), and persistent storage."
