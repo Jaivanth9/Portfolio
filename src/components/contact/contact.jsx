@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Container,
   Row,
@@ -8,7 +8,9 @@ import {
   Spinner,
   Alert,
 } from "react-bootstrap";
-import Particle from "../Particle"; // Updated Particle is used here
+
+import Particle from "../Particle";
+
 import {
   FaEnvelope,
   FaPhoneAlt,
@@ -18,74 +20,137 @@ import {
 } from "react-icons/fa";
 
 function validateEmail(email) {
-  return /\S+@\S+\.\S+/.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [serverError, setServerError] = useState("");
 
-  const inputRefs = {
-    name: React.createRef(),
-    email: React.createRef(),
-    message: React.createRef(),
-  };
+  const nameRef = useRef(null);
+  const emailRef = useRef(null);
+  const messageRef = useRef(null);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    setServerError("");
   };
 
   const validate = () => {
     const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Name is required";
-    if (!form.email.trim()) newErrors.email = "Email is required";
-    else if (!validateEmail(form.email)) newErrors.email = "Invalid email";
-    if (!form.message.trim()) newErrors.message = "Message is required";
+
+    if (!form.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!validateEmail(form.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    if (!form.message.trim()) {
+      newErrors.message = "Message is required";
+    }
+
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setSubmitted(false);
+    setServerError("");
+
     const validationErrors = validate();
-    setErrors(validationErrors);
-  
+
     if (Object.keys(validationErrors).length > 0) {
-      const firstError = Object.keys(validationErrors)[0];
-      inputRefs[firstError]?.current?.focus();
+      setErrors(validationErrors);
+
+      if (validationErrors.name) {
+        nameRef.current?.focus();
+      } else if (validationErrors.email) {
+        emailRef.current?.focus();
+      } else if (validationErrors.message) {
+        messageRef.current?.focus();
+      }
+
       return;
     }
-  
+
     setSubmitting(true);
-  
+
     try {
-      const response = await fetch("https://portfolio-1-i44r.onrender.com/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-  
+      const response = await fetch(
+        "https://portfolio-1-i44r.onrender.com/api/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: form.name.trim(),
+            email: form.email.trim(),
+            message: form.message.trim(),
+          }),
+        }
+      );
+
       const data = await response.json();
-  
-      if (response.ok && data.success) {
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error || `Server error (${response.status})`
+        );
+      }
+
+      if (data.success) {
         setSubmitted(true);
-        setForm({ name: "", email: "", message: "" });
-        setTimeout(() => setSubmitted(false), 4000);
+
+        setForm({
+          name: "",
+          email: "",
+          message: "",
+        });
+
+        setErrors({});
+
+        setTimeout(() => {
+          setSubmitted(false);
+        }, 5000);
       } else {
-        throw new Error(data.error || "Something went wrong");
+        throw new Error(data?.error || "Message could not be sent");
       }
     } catch (error) {
-      console.error("Submit Error:", error);
-      alert("❌ Failed to send message. Please try again later.");
+      console.error("Contact form error:", error);
+
+      setServerError(
+        error.message ||
+          "Failed to send message. Please try again later."
+      );
     } finally {
       setSubmitting(false);
     }
   };
-  
 
   const contactIcons = [
     {
@@ -123,7 +188,13 @@ function Contact() {
   return (
     <>
       <Particle />
-      <section style={{ position: "relative", zIndex: 1 }}>
+
+      <section
+        style={{
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
         <Container
           fluid
           className="home-section"
@@ -139,11 +210,13 @@ function Contact() {
             className="home-content d-flex flex-column justify-content-center"
             style={{ flex: 1 }}
           >
+            {/* Heading */}
             <Row className="mb-4">
               <Col xs={12} className="text-center">
                 <h1 className="heading">
                   <span className="main-name">Contact Me</span>
                 </h1>
+
                 <div className="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap contact-icons-row">
                   {contactIcons.map((item) => (
                     <a
@@ -164,14 +237,16 @@ function Contact() {
                     </a>
                   ))}
                 </div>
+
                 <p className="text-white fs-5">
-                  Let’s get in touch — happy to connect!
+                  Let's get in touch — happy to connect!
                 </p>
               </Col>
             </Row>
 
+            {/* Main content */}
             <Row className="flex-grow-1">
-              {/* Map & Info */}
+              {/* Map */}
               <Col md={6} className="d-flex flex-column">
                 <div
                   className="map-container"
@@ -189,52 +264,62 @@ function Contact() {
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
-                    allowFullScreen=""
+                    allowFullScreen
                     referrerPolicy="no-referrer-when-downgrade"
                     loading="eager"
-                  ></iframe>
+                  />
                 </div>
+
                 <div
                   className="contact-info text-white mt-3 p-3 rounded"
                   style={{
                     fontSize: "1.05rem",
-                    background: "#1a1a2e", // keep background color same as form
+                    background: "#1a1a2e",
                   }}
                 >
                   <p>
-                    <FaMapMarkerAlt className="me-2 text-primary" /> Tadepalligudem,
-                    Andhra Pradesh
+                    <FaMapMarkerAlt className="me-2 text-primary" />
+                    Tadepalligudem, Andhra Pradesh
                   </p>
+
                   <p>
-                    <FaEnvelope className="me-2 text-primary" />{" "}
+                    <FaEnvelope className="me-2 text-primary" />
                     jaivanthkoppula999@gmail.com
                   </p>
+
                   <p>
-                    <FaPhoneAlt className="me-2 text-primary" /> +91 9948469694
+                    <FaPhoneAlt className="me-2 text-primary" />
+                    +91 9948469694
                   </p>
                 </div>
               </Col>
 
-              {/* Form */}
+              {/* Contact Form */}
               <Col md={6}>
                 <Form
                   onSubmit={handleSubmit}
                   className="contact-form p-4 rounded shadow"
                   autoComplete="off"
                   style={{
-                    backgroundColor: "#1a1a2e", // dark background color
-                    color: "#fff", // white text for contrast
+                    backgroundColor: "#1a1a2e",
+                    color: "#fff",
                     border: "1px solid #22223b",
                   }}
                 >
-                  <Form.Group className="mb-3" controlId="contactName">
-                    <Form.Label className="fw-bold" style={{ color: "#fff" }}>Name</Form.Label>
+                  <Form.Group className="mb-3">
+                    <Form.Label
+                      className="fw-bold"
+                      style={{ color: "#fff" }}
+                    >
+                      Name
+                    </Form.Label>
+
                     <Form.Control
                       type="text"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
-                      ref={inputRefs.name}
+                      ref={nameRef}
                       isInvalid={!!errors.name}
                       placeholder="Your Name"
                       style={{
@@ -243,18 +328,26 @@ function Contact() {
                         border: "1px solid #39396a",
                       }}
                     />
+
                     <Form.Control.Feedback type="invalid">
                       {errors.name}
                     </Form.Control.Feedback>
                   </Form.Group>
-                  <Form.Group className="mb-3" controlId="contactEmail">
-                    <Form.Label className="fw-bold" style={{ color: "#fff" }}>Email</Form.Label>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label
+                      className="fw-bold"
+                      style={{ color: "#fff" }}
+                    >
+                      Email
+                    </Form.Label>
+
                     <Form.Control
                       type="email"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
-                      ref={inputRefs.email}
+                      ref={emailRef}
                       isInvalid={!!errors.email}
                       placeholder="Your Email"
                       style={{
@@ -263,19 +356,27 @@ function Contact() {
                         border: "1px solid #39396a",
                       }}
                     />
+
                     <Form.Control.Feedback type="invalid">
                       {errors.email}
                     </Form.Control.Feedback>
                   </Form.Group>
-                  <Form.Group className="mb-3" controlId="contactMessage">
-                    <Form.Label className="fw-bold" style={{ color: "#fff" }}>Message</Form.Label>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label
+                      className="fw-bold"
+                      style={{ color: "#fff" }}
+                    >
+                      Message
+                    </Form.Label>
+
                     <Form.Control
                       as="textarea"
                       rows={4}
                       name="message"
                       value={form.message}
                       onChange={handleChange}
-                      ref={inputRefs.message}
+                      ref={messageRef}
                       isInvalid={!!errors.message}
                       placeholder="Your Message"
                       style={{
@@ -284,24 +385,48 @@ function Contact() {
                         border: "1px solid #39396a",
                       }}
                     />
+
                     <Form.Control.Feedback type="invalid">
                       {errors.message}
                     </Form.Control.Feedback>
                   </Form.Group>
+
                   <div className="d-grid">
-                    <Button type="submit" variant="primary" disabled={submitting}>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={submitting}
+                    >
                       {submitting ? (
                         <>
-                          <Spinner animation="border" size="sm" className="me-2" /> Sending...
+                          <Spinner
+                            animation="border"
+                            size="sm"
+                            className="me-2"
+                          />
+                          Sending...
                         </>
                       ) : (
                         "Send Message"
                       )}
                     </Button>
                   </div>
+
                   {submitted && (
-                    <Alert variant="success" className="text-center mt-3">
+                    <Alert
+                      variant="success"
+                      className="text-center mt-3"
+                    >
                       ✅ Message sent successfully!
+                    </Alert>
+                  )}
+
+                  {serverError && (
+                    <Alert
+                      variant="danger"
+                      className="text-center mt-3"
+                    >
+                      ❌ {serverError}
                     </Alert>
                   )}
                 </Form>
@@ -316,22 +441,28 @@ function Contact() {
               .contact-icons-row {
                 font-size: 1.3rem;
               }
+
               .contact-form {
                 padding: 1.2rem !important;
               }
             }
+
             .contact-icon-link:hover {
               transform: scale(1.18);
               color: #6610f2 !important;
               text-decoration: none;
             }
-            .contact-form input, .contact-form textarea {
+
+            .contact-form input,
+            .contact-form textarea {
               background: #23234a !important;
               color: #fff !important;
               border-radius: 6px;
               border: 1px solid #39396a;
             }
-            .contact-form input:focus, .contact-form textarea:focus {
+
+            .contact-form input:focus,
+            .contact-form textarea:focus {
               border-color: #0d6efd;
               box-shadow: 0 0 0 0.2rem rgba(13,110,253,.15);
               background: #23234a !important;
