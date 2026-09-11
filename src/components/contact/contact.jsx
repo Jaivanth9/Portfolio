@@ -101,16 +101,16 @@ function Contact() {
 
     try {
       const response = await fetch(
-        "https://portfolio-1-i44r.onrender.com/api/contact",
+        "https://portfolio-cjvs.onrender.com/api/contact",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: form.name.trim(),
-            email: form.email.trim(),
-            message: form.message.trim(),
+            name,
+            email,
+            message,
           }),
         }
       );
