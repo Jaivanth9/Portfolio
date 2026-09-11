@@ -1,13 +1,10 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
 const cors = require("cors");
 require("dotenv").config();
 
-const app = express();
+const { Resend } = require("resend");
 
-// ===============================
-// Middleware
-// ===============================
+const app = express();
 
 app.use(
   cors({
@@ -19,9 +16,7 @@ app.use(
 
 app.use(express.json());
 
-// ===============================
-// Health Check
-// ===============================
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.get("/", (req, res) => {
   res.json({
@@ -37,18 +32,11 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ===============================
-// Contact Form API
-// ===============================
-
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
-    // -------------------------------
-    // Validate input
-    // -------------------------------
-
+    // Validation
     if (!name || !email || !message) {
       return res.status(400).json({
         success: false,
@@ -56,7 +44,6 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
@@ -66,12 +53,8 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // -------------------------------
-    // Check environment variables
-    // -------------------------------
-
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.error("SMTP_USER or SMTP_PASS is missing");
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is missing");
 
       return res.status(500).json({
         success: false,
@@ -79,38 +62,11 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // -------------------------------
-    // Create Gmail transporter
-    // -------------------------------
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    // -------------------------------
-    // Verify SMTP connection
-    // -------------------------------
-
-    await transporter.verify();
-
-    // -------------------------------
-    // Send email to you
-    // -------------------------------
-
-    await transporter.sendMail({
-      from: `"Portfolio Contact Form" <${process.env.SMTP_USER}>`,
-
-      to: process.env.SMTP_USER,
-
-      // Visitor's email is used here instead of spoofing
-      // the From address.
+    // Send notification to you
+    const { data, error } = await resend.emails.send({
+      from: "Portfolio Contact <onboarding@resend.dev>",
+      to: ["jaivanthkoppula999@gmail.com"],
       replyTo: email,
-
       subject: "📩 New Portfolio Contact Message",
 
       html: `
@@ -122,7 +78,6 @@ app.post("/api/contact", async (req, res) => {
           border: 1px solid #ddd;
           border-radius: 10px;
         ">
-
           <h2 style="color: #333;">
             📩 New Contact Message
           </h2>
@@ -154,23 +109,31 @@ app.post("/api/contact", async (req, res) => {
 
           <hr />
 
-          <p style="color: #777; font-size: 12px;">
+          <p style="
+            color: #777;
+            font-size: 12px;
+          ">
             This message was sent from your portfolio contact form.
           </p>
-
         </div>
       `,
     });
 
-    // -------------------------------
-    // Send confirmation email
-    // -------------------------------
+    if (error) {
+      console.error("❌ Resend error:", error);
 
-    await transporter.sendMail({
-      from: `"Jaivanth Koppula" <${process.env.SMTP_USER}>`,
+      return res.status(500).json({
+        success: false,
+        error: "Failed to send message",
+      });
+    }
 
-      to: email,
+    console.log("✅ Email sent successfully:", data);
 
+    // Send confirmation to visitor
+    const confirmation = await resend.emails.send({
+      from: "Jaivanth Koppula <onboarding@resend.dev>",
+      to: [email],
       subject: "✅ Thank you for contacting Jaivanth",
 
       html: `
@@ -180,7 +143,6 @@ app.post("/api/contact", async (req, res) => {
           margin: auto;
           padding: 20px;
         ">
-
           <h2>
             Hi ${escapeHtml(name)} 👋
           </h2>
@@ -200,14 +162,16 @@ app.post("/api/contact", async (req, res) => {
             Best regards,<br />
             <strong>Jaivanth Koppula</strong>
           </p>
-
         </div>
       `,
     });
 
-    // -------------------------------
-    // Success response
-    // -------------------------------
+    if (confirmation.error) {
+      console.error(
+        "⚠️ Confirmation email error:",
+        confirmation.error
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -223,11 +187,6 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-// ===============================
-// Escape HTML
-// Prevent HTML injection in emails
-// ===============================
-
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -236,10 +195,6 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
-// ===============================
-// Start Server
-// ===============================
 
 const PORT = process.env.PORT || 5000;
 
