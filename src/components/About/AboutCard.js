@@ -11,9 +11,9 @@ function AboutCard() {
             Hi Everyone, I am <span className="purple">Jaivanth Koppula </span>
             from <span className="purple">Tadepalligudem, AP, India.</span>
             <br />
-            I am currently Pursuing Final year B.tech CSE in <span className="purple">LPU.</span>
+            I am currently Working as Programmer Analyst Trainee in <span className="purple">Cognizant Technology Solutions.</span>
             <br />
-            I have strong Foundation in web development and software engineering
+            I have strong Foundation in Java Full Stack development and software engineering
             <br />
             <br />
             Apart from coding, some other activities that I love to do!

@@ -24,7 +24,7 @@ function Home2() {
               <br />
               <br />I have experience in classics like
               <i>
-                <b className="purple"> C/C++, JavaScript, PHP, and HTML/CSS. </b>
+                <b className="purple"> Java, JavaScript, PHP, and HTML/CSS. </b>
               </i>
               <br />
               <br />

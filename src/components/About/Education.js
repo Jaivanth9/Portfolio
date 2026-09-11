@@ -6,7 +6,7 @@ const educationData = [
     institute: "Lovely Professional University",
     degree: "B.Tech in Computer Science",
     year: "2022 - 2026",
-    description: "Graduated with honors, specialized in web development and artificial intelligence.",
+    description: "Graduated with honors, specialized in fullStack development and artificial intelligence.",
   },
   {
     institute: "Tirumala Educational Institutes",

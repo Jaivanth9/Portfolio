@@ -18,6 +18,7 @@ import {
   SiNextdotjs,
   // SiSolidity,
   SiPostgresql,
+  SiSpringboot,
 } from "react-icons/si";
 // import { TbBrandGolang } from "react-icons/tb";
 
@@ -42,6 +43,7 @@ function Techstack() {
       <Col xs={4} md={2} className="tech-icons">
         <DiJavascript1 /><h6>Javascript</h6>
       </Col>
+      <Col xs={4} md={2} className="tech-icons"><SiSpringboot /><h6>Springboot</h6></Col>
       {/* <Col xs={4} md={2} className="tech-icons">
         <TbBrandGolang />
       </Col> */}
