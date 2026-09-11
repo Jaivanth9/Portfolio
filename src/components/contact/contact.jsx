@@ -108,9 +108,9 @@ function Contact() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name,
-            email,
-            message,
+            name: form.name,
+            email: form.email,
+            message: form.message,
           }),
         }
       );
@@ -138,7 +138,9 @@ function Contact() {
           setSubmitted(false);
         }, 5000);
       } else {
-        throw new Error(data?.error || "Message could not be sent");
+        throw new Error(
+          data?.error || "Message could not be sent"
+        );
       }
     } catch (error) {
       console.error("Contact form error:", error);
