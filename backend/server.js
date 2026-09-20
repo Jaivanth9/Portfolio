@@ -18,6 +18,7 @@ app.use(express.json());
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Home
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
   });
 });
 
+// Health check
 app.get("/health", (req, res) => {
   res.json({
     success: true,
@@ -32,6 +34,7 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Contact form
 app.post("/api/contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -53,8 +56,9 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
+    // Check Resend API key
     if (!process.env.RESEND_API_KEY) {
-      console.error("RESEND_API_KEY is missing");
+      console.error("❌ RESEND_API_KEY is missing");
 
       return res.status(500).json({
         success: false,
@@ -62,7 +66,7 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // Send notification to you
+    // Send contact message to your Gmail
     const { data, error } = await resend.emails.send({
       from: "Portfolio Contact <onboarding@resend.dev>",
       to: ["jaivanthkoppula999@gmail.com"],
@@ -130,49 +134,6 @@ app.post("/api/contact", async (req, res) => {
 
     console.log("✅ Email sent successfully:", data);
 
-    // Send confirmation to visitor
-    const confirmation = await resend.emails.send({
-      from: "Jaivanth Koppula <onboarding@resend.dev>",
-      to: [email],
-      subject: "✅ Thank you for contacting Jaivanth",
-
-      html: `
-        <div style="
-          font-family: Arial, sans-serif;
-          max-width: 600px;
-          margin: auto;
-          padding: 20px;
-        ">
-          <h2>
-            Hi ${escapeHtml(name)} 👋
-          </h2>
-
-          <p>
-            Thank you for contacting me through my portfolio.
-          </p>
-
-          <p>
-            I have received your message and will get back to you
-            as soon as possible.
-          </p>
-
-          <br />
-
-          <p>
-            Best regards,<br />
-            <strong>Jaivanth Koppula</strong>
-          </p>
-        </div>
-      `,
-    });
-
-    if (confirmation.error) {
-      console.error(
-        "⚠️ Confirmation email error:",
-        confirmation.error
-      );
-    }
-
     return res.status(200).json({
       success: true,
       message: "Message sent successfully",
@@ -187,6 +148,7 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
+// Escape HTML
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -196,6 +158,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+// Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
