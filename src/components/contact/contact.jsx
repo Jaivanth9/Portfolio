@@ -109,11 +109,11 @@ function Contact() {
       };
 
       await emailjs.send(
-        "YOUR_SERVICE_ID",
-        "YOUR_TEMPLATE_ID",
+        "service_helblrn",
+        "template_bqllvxi",
         templateParams,
         {
-          publicKey: "YOUR_PUBLIC_KEY",
+          publicKey: "2ZiF_dSdZJBGuxx7M",
         }
       );
 
