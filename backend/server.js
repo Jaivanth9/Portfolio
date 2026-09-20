@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
-
-const { Resend } = require("resend");
 
 const app = express();
 
@@ -16,7 +15,14 @@ app.use(
 
 app.use(express.json());
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Gmail SMTP transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 // Home
 app.get("/", (req, res) => {
@@ -56,9 +62,9 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // Check Resend API key
-    if (!process.env.RESEND_API_KEY) {
-      console.error("❌ RESEND_API_KEY is missing");
+    // Check SMTP configuration
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error("❌ SMTP_USER or SMTP_PASS is missing");
 
       return res.status(500).json({
         success: false,
@@ -66,10 +72,18 @@ app.post("/api/contact", async (req, res) => {
       });
     }
 
-    // Send contact message to your Gmail
-    const { data, error } = await resend.emails.send({
-      from: "Portfolio Contact <onboarding@resend.dev>",
-      to: ["jaivanthkoppula999@gmail.com"],
+    // Verify Gmail connection
+    await transporter.verify();
+
+    console.log("✅ Gmail SMTP connection successful");
+
+    // ------------------------------------------------
+    // 1. SEND CONTACT MESSAGE TO YOU
+    // ------------------------------------------------
+
+    await transporter.sendMail({
+      from: `"Portfolio Contact Form" <${process.env.SMTP_USER}>`,
+      to: process.env.SMTP_USER,
       replyTo: email,
       subject: "📩 New Portfolio Contact Message",
 
@@ -82,6 +96,7 @@ app.post("/api/contact", async (req, res) => {
           border: 1px solid #ddd;
           border-radius: 10px;
         ">
+
           <h2 style="color: #333;">
             📩 New Contact Message
           </h2>
@@ -119,25 +134,64 @@ app.post("/api/contact", async (req, res) => {
           ">
             This message was sent from your portfolio contact form.
           </p>
+
         </div>
       `,
     });
 
-    if (error) {
-      console.error("❌ Resend error:", error);
+    console.log("✅ Contact message sent to your Gmail");
 
-      return res.status(500).json({
-        success: false,
-        error: "Failed to send message",
-      });
-    }
+    // ------------------------------------------------
+    // 2. SEND THANK-YOU EMAIL TO VISITOR
+    // ------------------------------------------------
 
-    console.log("✅ Email sent successfully:", data);
+    await transporter.sendMail({
+      from: `"Jaivanth Koppula" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: "✅ Thank you for contacting Jaivanth",
 
+      html: `
+        <div style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+        ">
+
+          <h2>
+            Hi ${escapeHtml(name)} 👋
+          </h2>
+
+          <p>
+            Thank you for contacting me through my portfolio.
+          </p>
+
+          <p>
+            I have received your message and will get back to you
+            as soon as possible.
+          </p>
+
+          <br />
+
+          <p>
+            Best regards,<br />
+            <strong>Jaivanth Koppula</strong>
+          </p>
+
+        </div>
+      `,
+    });
+
+    console.log("✅ Thank-you email sent to:", email);
+
+    // Success response
     return res.status(200).json({
       success: true,
       message: "Message sent successfully",
     });
+
   } catch (error) {
     console.error("❌ Email error:", error);
 
