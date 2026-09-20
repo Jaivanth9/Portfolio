@@ -9,6 +9,8 @@ import {
   Alert,
 } from "react-bootstrap";
 
+import emailjs from "@emailjs/browser";
+
 import Particle from "../Particle";
 
 import {
@@ -100,54 +102,39 @@ function Contact() {
     setSubmitting(true);
 
     try {
-      const response = await fetch(
-        "https://portfolio-cjvs.onrender.com/api/contact",
+      const templateParams = {
+        name: form.name,
+        email: form.email,
+        message: form.message,
+      };
+
+      await emailjs.send(
+        "YOUR_SERVICE_ID",
+        "YOUR_TEMPLATE_ID",
+        templateParams,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: form.name,
-            email: form.email,
-            message: form.message,
-          }),
+          publicKey: "YOUR_PUBLIC_KEY",
         }
       );
 
-      const data = await response.json();
+      setSubmitted(true);
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error || `Server error (${response.status})`
-        );
-      }
+      setForm({
+        name: "",
+        email: "",
+        message: "",
+      });
 
-      if (data.success) {
-        setSubmitted(true);
+      setErrors({});
 
-        setForm({
-          name: "",
-          email: "",
-          message: "",
-        });
-
-        setErrors({});
-
-        setTimeout(() => {
-          setSubmitted(false);
-        }, 5000);
-      } else {
-        throw new Error(
-          data?.error || "Message could not be sent"
-        );
-      }
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 5000);
     } catch (error) {
-      console.error("Contact form error:", error);
+      console.error("EmailJS Error:", error);
 
       setServerError(
-        error.message ||
-          "Failed to send message. Please try again later."
+        "Failed to send message. Please try again later."
       );
     } finally {
       setSubmitting(false);
@@ -248,6 +235,7 @@ function Contact() {
 
             {/* Main content */}
             <Row className="flex-grow-1">
+
               {/* Map */}
               <Col md={6} className="d-flex flex-column">
                 <div
